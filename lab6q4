@@ -15,7 +15,7 @@ try:
     while 1:
         pattern = 1 << position
         shifter.shiftByte(pattern)
-        step = random.choice[-1, 1]
+        step = random.choice([-1, 1])
         position = position + step
         if position < 0:
           position = 0
