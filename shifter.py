@@ -3,7 +3,7 @@ import time
 
 class Shifter:
    
-    def__init__(self, serialPin, latchPin, clockPin):
+    def __init__(self, serialPin, latchPin, clockPin):
         self.serialPin = serialPin
         self.latchPin = latchPin
         self.clockPin = clockPin
