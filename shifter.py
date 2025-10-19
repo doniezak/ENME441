@@ -6,8 +6,7 @@ class Shifter:
     def __init__(self, serialPin, latchPin, clockPin):
         self.serialPin = serialPin
         self.latchPin = latchPin
-        self.clockPin = clockPin
-        GPIO.setmode(GPIO.BCM)        
+        self.clockPin = clockPin        
         GPIO.setup(serialPin, GPIO.OUT)
         GPIO.setup(latchPin, GPIO.OUT, initial=0)  # start latch & clock low
         GPIO.setup(clockPin, GPIO.OUT, initial=0)
