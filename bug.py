@@ -42,4 +42,3 @@ class Bug:
         if self.__running:
             self.__running = False
             self.__thread.join()
-            GPIO.cleanup()
