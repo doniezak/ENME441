@@ -2,16 +2,36 @@ import RPi.GPIO as GPIO
 import time
 from bug import Bug
 
-s1 = 
-s2 = 
-s3 = 
+s1 = 26
+s2 = 19
+s3 = 13
+flipped = 0
 
-gpio.setup(s1, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-gpio.setup(s2, gpio.IN, pull_up_down=gpio.PUD_DOWN)
-gpio.setup(s3, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(s1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(s2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(s3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 bug = Bug()
 
 try:
   while True:
-    
+    if GPIO.input(s1) == GPIO.HIGH and not bug._Bug__running:
+      bug.start()
+    elif GPIO.input(s1) == GPIO.LOW and bug._Bug__running:
+      bug.stop()
+
+    if GPIO.input(s2) == GPIO.HIGH and flipped == 0:
+      bug.isWrapOn = not bug.isWrapOn
+      flipped = 1
+    elif GPIO.input(s2) == GPIO.LOW and flipped == 1:
+      flipped = 0
+
+    if GPIO.input(s3) == GPIO.HIGH:
+      bug.timestep = bug.timestep/3
+    elif GPIO.input(s3) == GPIO.LOW:
+      bug.timestep = 0.1
+
+except KeyboardInterrupt:
+  bug.stop()
+  GPIO.cleanup()
