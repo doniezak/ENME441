@@ -1,4 +1,4 @@
-import RPI GPIO as GPIO
+import RPi.GPIO as GPIO
 import socket
 
 HOST = ''
@@ -17,36 +17,66 @@ brightness = [0, 0, 0]
 
 def splitData(data):
   data_dictionary = {}
-  index = data.find('\r\n\r\n')+4
+  index = data.find('\r\n\r\n') + 4
   data = data[index:]
   pairs = data.split('&')
   for pair in pairs:
     key_value = pair.split('=')
-    if len(key_values)==2:
-      data_dictionary[key_values[0]]=key_values[1]
+    if len(key_value) == 2:
+      data_dictionary[key_value[0]]=key_value[1]
   return data_dictionary
 
 def webpage(led1, led2, led3):
   html = f"""
   <html>
-    <head><title> Brightness Level: </title></head>
+    <head>
+      <title> Brightness Level: </title>
+    </head>
     <body>
-      <h2>LED States</h2>
-      <p>LED1: {led1}</p>
-      <p>LED2:{led2}</p>
-      <p>LED 3: {led3}</p>
+      <h2>LED Brightness</h2>
+      <p>LED1 Brightness: {led1}%</p>
+      <p>LED2 Brightness:{led2}%</p>
+      <p>LED3 Brightness: {led3}%</p>
       
       <form method = "POST">
-        <button name="led 1" value="led1"> Click here </button>
-        <button name="led 2" value="led2"> Or here </button>
-        <button name="led 3" value="led3"> Or here </button>
+        <label><input type="radio" name="led" value="0" checked> LED 1</label><br>
+        <label><input type="radio" name="led" value="1"> LED2</label><br>
+        <label><input type="radio" name="led" value="2"> LED3</label><br><br>
+        <input type="range" name="brightness" min="0" max="100" value="50"/>
+        <input type="submit" value="Set Brightness">
       </form>
     </body>
   </html>
   """
   return html
-
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen(3)
 print(f"listening on port {PORT}...")
+
+try:
+  while True:
+    conn, addr = server.accept()
+    print("Connected by:", addr)
+    request = conn.recv(1024).decode('utf-8')
+    print("Request received:\n", request)
+   
+    if "POST" in request:
+      post_dictionary = splitData(request)
+      try:
+        led = int(post_dictionary.get("led", "0"))
+        value = int(post_dictionary.get("brightness", "0"))
+        brightness[led]=value
+        pwms[led].ChangeDutyCycle(value)
+        print(f"Updated LED {led+1}, {value}%brightness")
+      
+    response = webpage(brightness[0], brightness[1], brightness[2])
+    conn.send(b"HTTP/1.1 200 OK\r\n")
+    conn.send(b"Content-Type: text/html\r\n\r\n")
+    conn.sendall(response.encode('utf-8'))
+    conn.close()
+
+except KeyboardInterrupt:
+  GPIO.cleanup()
+
+    
