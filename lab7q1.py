@@ -4,7 +4,7 @@ import socket
 HOST = ''
 PORT = 8080
 
-pins = [2, 3, 4]
+pins = [17, 27, 22]
 GPIO.setmode(GPIO.BCM)
 pwms = []
 for pin in pins:
@@ -77,6 +77,8 @@ try:
     conn.close()
 
 except KeyboardInterrupt:
+  for pwm in pwms:
+    pwm.stop()
   GPIO.cleanup()
 
     
