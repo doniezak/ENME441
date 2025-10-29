@@ -4,7 +4,7 @@ import socket
 HOST = ''
 PORT = 8080
 
-pins = [17, 27, 22]
+pins = [2, 3, 4]
 GPIO.setmode(GPIO.BCM)
 pwms = []
 for pin in pins:
