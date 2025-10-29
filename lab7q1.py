@@ -69,6 +69,8 @@ try:
         brightness[led]=value
         pwms[led].ChangeDutyCycle(value)
         print(f"Updated LED {led+1}, {value}%brightness")
+      except Exception as e:
+        print("Error updating LED:", e)
       
     response = webpage(brightness[0], brightness[1], brightness[2])
     conn.send(b"HTTP/1.1 200 OK\r\n")
