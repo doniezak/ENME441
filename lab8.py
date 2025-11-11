@@ -36,7 +36,7 @@ class Stepper:
     num_steppers = 0      # track number of Steppers instantiated
     shifter_outputs = 0   # track shift register outputs for all motors
     seq = [0b0001,0b0011,0b0010,0b0110,0b0100,0b1100,0b1000,0b1001] # CCW sequence
-    delay = 3000          # delay between motor steps [us]
+    delay = 5000          # delay between motor steps [us]
     steps_per_degree = 4096/360    # 4096 steps/rev * 1/360 rev/deg
 
     def __init__(self, shifter, lock):
@@ -108,13 +108,13 @@ if __name__ == '__main__':
     m1.zero()
     m2.zero()
 
-    # Move as desired, with eacg step occuring as soon as the previous 
+    # Move as desired, with each step occuring as soon as the previous 
     # step ends:
     m1.rotate(360)
 
     # If separate multiprocessing.lock objects are used, the second motor
     # will run in parallel with the first motor:
-    m2.rotate(-180)
+    m2.rotate(360)
  
     # While the motors are running in their separate processes, the main
     # code can continue doing its thing: 
