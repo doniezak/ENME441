@@ -59,8 +59,7 @@ class Stepper:
         self.step_state %= 8      # ensure result stays in [0,7]
         Stepper.shifter_outputs = Stepper.shifter_outputs & ~(0b1111<<self.shifter_bit_start)
         Stepper.shifter_outputs = Stepper.shifter_outputs | (Stepper.seq[self.step_state]<<self.shifter_bit_start)
-        with self.lock:
-            self.s.shiftByte(Stepper.shifter_outputs)
+        self.s.shiftByte(Stepper.shifter_outputs)
         with self.angle.get_lock():
             self.angle.value += dir/Stepper.steps_per_degree
             self.angle.value %= 360         # limit to [0,359.9+] range
@@ -80,13 +79,15 @@ class Stepper:
         time.sleep(0.1)
         p = multiprocessing.Process(target=self.__rotate, args=(delta,))
         p.start()
+        return p
 
     # Move to an absolute angle taking the shortest possible path:
     def goAngle(self, angle):
         with self.angle.get_lock():
             current = self.angle.value
         change = (angle-current+180) % 360 - 180
-        self.rotate(change)
+        p = self.rotate(change)
+        p.join()
 
     # Set the motor zero point
     def zero(self):
@@ -114,6 +115,7 @@ if __name__ == '__main__':
 
     m1.goAngle(90)
     m2.goAngle(-90)
+
     
     m1.goAngle(-45)
     m2.goAngle(45)
