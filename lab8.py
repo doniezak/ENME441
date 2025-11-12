@@ -59,12 +59,12 @@ class Stepper:
         self.step_state %= 8      # ensure result stays in [0,7]
         Stepper.shifter_outputs = Stepper.shifter_outputs & ~(0b1111<<self.shifter_bit_start)
         Stepper.shifter_outputs = Stepper.shifter_outputs | (Stepper.seq[self.step_state]<<self.shifter_bit_start)
-        self.s.shiftByte(Stepper.shifter_outputs)
+        with self.lock:
+            self.s.shiftByte(Stepper.shifter_outputs)
         with self.angle.get_lock():
             self.angle.value += dir/Stepper.steps_per_degree
             self.angle.value %= 360         # limit to [0,359.9+] range
-        print(f"[{self}] Step: dir={dir}, angle={self.angle.value:.1f}, step_state={self.step_state}")
-
+        
     # Move relative angle from current position:
     def __rotate(self, delta):
         numSteps = int(Stepper.steps_per_degree * abs(delta))    # find the right # of steps
@@ -86,7 +86,6 @@ class Stepper:
         with self.angle.get_lock():
             current = self.angle.value
         change = (angle-current+180) % 360 - 180
-        print(f"[{self}] Moving from {current:.1f}° to {angle}° -> delta={change:.1f}")
         self.rotate(change)
 
     # Set the motor zero point
