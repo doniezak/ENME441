@@ -41,7 +41,7 @@ class Stepper:
 
     def __init__(self, shifter, lock):
         self.s = shifter           # shift register
-        self.angle = 0             # current output shaft angle
+        self.angle = multiprocessing.Value('d', 0.0)             # current output shaft angle
         self.step_state = 0        # track position in sequence
         self.shifter_bit_start = 4*Stepper.num_steppers  # starting bit position
         self.lock = lock           # multiprocessing lock
@@ -60,8 +60,9 @@ class Stepper:
         Stepper.shifter_outputs = Stepper.shifter_outputs & ~(0b1111<<self.shifter_bit_start)
         Stepper.shifter_outputs = Stepper.shifter_outputs | (Stepper.seq[self.step_state]<<self.shifter_bit_start)
         self.s.shiftByte(Stepper.shifter_outputs)
-        self.angle += dir/Stepper.steps_per_degree
-        self.angle %= 360         # limit to [0,359.9+] range
+        with self.angle.get_lock():
+            self.angle.value += dir/Stepper.steps_per_degree
+            self.angle.value %= 360         # limit to [0,359.9+] range
 
     # Move relative angle from current position:
     def __rotate(self, delta):
@@ -81,12 +82,15 @@ class Stepper:
 
     # Move to an absolute angle taking the shortest possible path:
     def goAngle(self, angle):
-         pass
-         # COMPLETE THIS METHOD FOR LAB 8
+         with self.angle.get_lock():
+             current = self.angle.value
+         change = (angle-current+180) % 360 - 180
+         self.rotate(change)
 
     # Set the motor zero point
     def zero(self):
-        self.angle = 0
+        with self.angle.get_lock():
+            self.angle.value = 0
 
 
 # Example use:
@@ -107,13 +111,13 @@ if __name__ == '__main__':
     m1.zero()
     m2.zero()
 
-    # Move as desired, with each step occuring as soon as the previous 
-    # step ends:
-    m1.rotate(360)
-
-    # If separate multiprocessing.lock objects are used, the second motor
-    # will run in parallel with the first motor:
-    m2.rotate(360)
+    m1.goAngle(90)
+    m1.goAngle(-45)
+    m2.goAngle(-90)
+    m2.goAngle(45)
+    m1.goAngle(-135)
+    m1.goAngle(135)
+    m1.goAngle(0)
  
     # While the motors are running in their separate processes, the main
     # code can continue doing its thing: 
