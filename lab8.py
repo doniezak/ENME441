@@ -63,6 +63,7 @@ class Stepper:
         with self.angle.get_lock():
             self.angle.value += dir/Stepper.steps_per_degree
             self.angle.value %= 360         # limit to [0,359.9+] range
+        print(f"[{self}] Step: dir={dir}, angle={self.angle.value:.1f}, step_state={self.step_state}")
 
     # Move relative angle from current position:
     def __rotate(self, delta):
@@ -82,10 +83,11 @@ class Stepper:
 
     # Move to an absolute angle taking the shortest possible path:
     def goAngle(self, angle):
-         with self.angle.get_lock():
-             current = self.angle.value
-         change = (angle-current+180) % 360 - 180
-         self.rotate(change)
+        with self.angle.get_lock():
+            current = self.angle.value
+        change = (angle-current+180) % 360 - 180
+        print(f"[{self}] Moving from {current:.1f}° to {angle}° -> delta={change:.1f}")
+        self.rotate(change)
 
     # Set the motor zero point
     def zero(self):
